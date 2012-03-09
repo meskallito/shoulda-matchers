@@ -112,8 +112,10 @@ module ModelBuilder
     @controller = klass.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    @controller.send :assign_shortcuts, @request, @response
-    @controller.send :initialize_template_class, @response
+    if before_rails_3_2?
+      @controller.send :assign_shortcuts, @request, @response
+      @controller.send :initialize_template_class, @response
+    end
 
     class << self
       include ActionController::TestCase::Behavior
@@ -143,6 +145,24 @@ module ModelBuilder
     FileUtils.rm_rf(TMP_VIEW_PATH)
 
     Rails.application.reload_routes!
+  end
+
+  private
+
+  def before_rails_3_2?
+    rails_2? || rails_3_0? || rails_3_1?
+  end
+
+  def rails_2?
+    Rails::VERSION::MAJOR == 2
+  end
+
+  def rails_3_1?
+    Rails::VERSION::MAJOR == 3 && Rails::VERSION::MINOR == 1
+  end
+
+  def rails_3_0?
+    Rails::VERSION::MAJOR == 3 && Rails::VERSION::MINOR == 0
   end
 end
 
